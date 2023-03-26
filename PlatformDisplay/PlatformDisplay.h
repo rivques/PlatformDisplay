@@ -64,6 +64,8 @@ class PlatformDisplay :
 		OnlinePlatform platform;
 	};
 
+	LinearColor teamColors[2];
+
 	std::vector<pri> leaderboard;
 	std::unordered_map<std::string, int> mmrs;
 	int num_blues = 0;

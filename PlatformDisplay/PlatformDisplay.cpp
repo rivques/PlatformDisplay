@@ -78,6 +78,7 @@ void PlatformDisplay::onLoad()
 		updateScores();
 	});
 	gameWrapper->HookEvent("Function TAGame.GameEvent_TA.AddCar", [this](std::string eventName) {
+		leaderboard.clear();
 		updateScores();
 	});
 	//
@@ -95,6 +96,19 @@ void PlatformDisplay::updateScores(bool keepOrder) {
 	if (sw.IsNull()) return;
 	MMRWrapper mmrWrapper = gameWrapper->GetMMRWrapper();
 	if (mmrWrapper.GetCurrentPlaylist() == 6) return;
+
+	ArrayWrapper<TeamWrapper> teams = sw.GetTeams();
+	for (auto team : teams) {
+		if (!team) {
+			continue;
+		}
+		if (team.GetTeamNum2() < 0 || team.GetTeamNum2() > 1) {
+			continue;
+		}
+		LinearColor unscaledColor = team.GetPrimaryColor();
+		teamColors[team.GetTeamNum2()] = { unscaledColor.R * 255, unscaledColor.G * 255, unscaledColor.B * 255, unscaledColor.A * 255};
+		LOG("Got {}, {}, {}, {} for {} color", teamColors[team.GetTeamNum2()].R, teamColors[team.GetTeamNum2()].G, teamColors[team.GetTeamNum2()].B, teamColors[team.GetTeamNum2()].A, team.GetTeamNum2());
+	}
 
 	int currentPlaylist = mmrWrapper.GetCurrentPlaylist();
 	std::vector<std::string> currentUids;
@@ -119,7 +133,6 @@ void PlatformDisplay::updateScores(bool keepOrder) {
 
 		UniqueIDWrapper uniqueID = priw.GetUniqueIdWrapper(); //here
 		OnlinePlatform platform = uniqueID.GetPlatform(); //here
-		if (!platform) { continue; }
 
 		int mmr = 0;
 		if (mmrs.find(uidw.GetIdString()) != mmrs.end()) { mmr = mmrs[uidw.GetIdString()]; }
@@ -296,6 +309,7 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 			int platformImage = pri.platform;
 			std::shared_ptr<ImageWrapper> image = logos[PlatformImageMap[platformImage]];
 			if (image->IsLoadedForCanvas()) {
+				canvas.SetColor(teamColors[pri.team]);
 				canvas.SetPosition(Vector2{ (int)X, (int)Y });
 				canvas.DrawTexture(image.get(), 100.0f/48.0f*image_scale); // last bit of scale b/c imgs are 48x48
 			}
