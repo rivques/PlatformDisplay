@@ -16,20 +16,6 @@ void PlatformDisplay::SetImGuiContext(uintptr_t ctx) {
 void PlatformDisplay::RenderSettings() {
 	ImGui::TextUnformatted("PlatformDisplay plugin settings");
 
-	CVarWrapper BlueXLoc = cvarManager->getCvar("PlatformDisplay_BlueTeamPos_X");
-	CVarWrapper BlueYLoc = cvarManager->getCvar("PlatformDisplay_BlueTeamPos_Y");
-	if (!BlueXLoc) { return; }
-	if (!BlueYLoc) { return; }
-	float BlueX = BlueXLoc.getFloatValue();
-	float BlueY = BlueYLoc.getFloatValue();
-
-	CVarWrapper OrangeXLoc = cvarManager->getCvar("PlatformDisplay_OrangeTeamPos_X");
-	CVarWrapper OrangeYLoc = cvarManager->getCvar("PlatformDisplay_OrangeTeamPos_Y");
-	if (!OrangeXLoc) { return; }
-	if (!OrangeYLoc) { return; }
-	float OrangeX = OrangeXLoc.getFloatValue();
-	float OrangeY = OrangeYLoc.getFloatValue();
-
 	CVarWrapper colorpickerblue = cvarManager->getCvar("PlatformDisplay_ColorPickerBlueTeam");
 	if (!colorpickerblue) { return; }
 	LinearColor textColorBlue = colorpickerblue.getColorValue() / 255;
@@ -38,34 +24,21 @@ void PlatformDisplay::RenderSettings() {
 	if (!colorpickerorange) { return; }
 	LinearColor textColorOrange = colorpickerorange.getColorValue() / 255;
 
+	CVarWrapper overrideTintCvar = cvarManager->getCvar("PlatformDisplay_OverrideTints");
+	if (!overrideTintCvar) { return; }
+	bool doOverride = overrideTintCvar.getBoolValue();
 
-
-	ImGui::TextUnformatted("Blue Team's Position");
-
-	if (ImGui::SliderFloat("Blue Team's X Location", &BlueX, 0.0, 2000.0)) {
-		BlueXLoc.setValue(BlueX);
+	if (ImGui::Checkbox("Override auto tinting of logos (set to white for no tinting", &doOverride)) {
+		overrideTintCvar.setValue(doOverride);
 	}
-	if (ImGui::SliderFloat("Blue Team's Y Location", &BlueY, 0.0, 2000.0)) {
-		BlueYLoc.setValue(BlueY);
+	if (doOverride) {
+		if (ImGui::ColorEdit4("Blue Color", &textColorBlue.R)) {
+			colorpickerblue.setValue(textColorBlue * 255);
+		}
+		if (ImGui::ColorEdit4("Orange Color", &textColorOrange.R)) {
+			colorpickerorange.setValue(textColorOrange * 255);
+		}
 	}
-
-	ImGui::TextUnformatted("Orange Team's Position");
-
-	if (ImGui::SliderFloat("Orange Team's X Location", &OrangeX, 0.0, 2000.0)) {
-		OrangeXLoc.setValue(OrangeX);
-	}
-
-	if (ImGui::SliderFloat("Orange Team's Y Location", &OrangeY, 0.0, 2000.0)) {
-		OrangeYLoc.setValue(OrangeY);
-	}
-
-	if (ImGui::ColorEdit4("Text Color", &textColorBlue.R)) {
-		colorpickerblue.setValue(textColorBlue * 255);
-	}
-	if (ImGui::ColorEdit4("Text Color of Orange Team", &textColorOrange.R)) {
-		colorpickerorange.setValue(textColorOrange * 255);
-	}
-
 }
 
 

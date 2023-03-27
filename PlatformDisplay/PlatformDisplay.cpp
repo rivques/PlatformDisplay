@@ -50,10 +50,7 @@ void PlatformDisplay::onLoad()
 
 
 	//Sounds like a lot of HOOPLA!!!
-	cvarManager->registerCvar("PlatformDisplay_BlueTeamPos_X", "524.5", "Set the X position of the Blue teams PlatformDisplay");
-	cvarManager->registerCvar("PlatformDisplay_BlueTeamPos_Y", "680", "Set the Y position of the Blue teams PlatformDisplay");
-	cvarManager->registerCvar("PlatformDisplay_OrangeTeamPos_X", "1050", "Set the X position of the Orange teams PlatformDisplay");
-	cvarManager->registerCvar("PlatformDisplay_OrangeTeamPos_Y", "680", "Set the Y position of the Orange teams PlatformDisplay");
+	cvarManager->registerCvar("PlatformDisplay_OverrideTints", "0", "Override the autotinting of the platform icons");
 	cvarManager->registerCvar("PlatformDisplay_ColorPickerBlueTeam", "#FFFFFF", "Changes the color of the text for blue team");
 	cvarManager->registerCvar("PlatformDisplay_ColorPickerOrangeTeam", "#FFFFFF", "Changes the color of the text for Orange Team");
 	//Make thing go yes
@@ -216,38 +213,17 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 		//get the pos and color for the blue team
 
 		//cvars
-		CVarWrapper BlueXLoc = cvarManager->getCvar("PlatformDisplay_BlueTeamPos_X");
-		CVarWrapper BlueYLoc = cvarManager->getCvar("PlatformDisplay_BlueTeamPos_Y");
 		CVarWrapper BlueColorPicker = cvarManager->getCvar("PlatformDisplay_ColorPickerBlueTeam");
-		if (!BlueXLoc) { return; }
-		if (!BlueYLoc) { return; }
 		if (!BlueColorPicker) { return; }
+		CVarWrapper overrideTintCvar = cvarManager->getCvar("PlatformDisplay_OverrideTints");
+		if (!overrideTintCvar) { return; }
+		bool doOverride = overrideTintCvar.getBoolValue();
 		// the values
-		float BlueX = BlueXLoc.getFloatValue();
-		float BlueY = BlueYLoc.getFloatValue();
 		LinearColor BlueColor = BlueColorPicker.getColorValue();
-
-		Gap = 0.0f;
-		Vector2F BluePos = { BlueX, BlueY };
-
-		CVarWrapper OrangeXLoc = cvarManager->getCvar("PlatformDisplay_OrangeTeamPos_X");
-		CVarWrapper OrangeYLoc = cvarManager->getCvar("PlatformDisplay_OrangeTeamPos_Y");
 		CVarWrapper OrangeColorPicker = cvarManager->getCvar("PlatformDisplay_ColorPickerOrangeTeam");
-		if (!OrangeXLoc) { return; }
-		if (!OrangeYLoc) { return; }
 		if (!OrangeColorPicker) { return; }
-		float OrangeX = OrangeXLoc.getFloatValue();
-		float OrangeY = OrangeYLoc.getFloatValue();
 		LinearColor OrangeColor = OrangeColorPicker.getColorValue();
-		Gap = 0.0f;
-		Vector2F OrangePos = { OrangeX, OrangeY };
-		canvas.SetPosition(OrangePos);
-		canvas.SetColor(OrangeColor);
 		
-		// move to that pos and set color
-		canvas.SetPosition(BluePos);
-		canvas.SetColor(BlueColor);
-		int it = 0; 
 		if (!gameWrapper->IsInOnlineGame()) return;
 		ServerWrapper sw = gameWrapper->GetOnlineGame();
 
@@ -260,7 +236,8 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 		if (float(canvas_size.X) / float(canvas_size.Y) > 1.5f) scale = 0.507f * canvas_size.Y / SCOREBOARD_HEIGHT;
 		else scale = 0.615f * canvas_size.X / SCOREBOARD_WIDTH;
 
-		uiScale = gameWrapper->GetInterfaceScale();
+		uiScale = gameWrapper->GetDisplayScale();
+		// LOG("Got UI scale {}", uiScale);
 		mutators = mmrWrapper.GetCurrentPlaylist() == 34;
 		Vector2F center = Vector2F{ float(canvas_size.X) / 2, float(canvas_size.Y) / 2 };
 		float mutators_center = canvas_size.X - 1005.0f * scale * uiScale;
@@ -295,9 +272,9 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 			std::string playerString = playerOS + playerName; // "[OS]playername"
 
 			float Y;
-			if (pri.team == 0) { Y = tier_Y_blue - BANNER_DISTANCE * (num_blues - blues) + 11; }
+			if (pri.team == 0) { Y = tier_Y_blue - BANNER_DISTANCE * (num_blues - blues) + 9; }
 			else { Y = tier_Y_orange + BANNER_DISTANCE * (oranges); }
-			float X = tier_X + 100.0f * 0.48f + 36;
+			float X = tier_X + 100.0f * 0.48f + 31;
 
 			Y = center.Y + Y * scale * uiScale;
 			X = center.X + X * scale * uiScale;
@@ -309,16 +286,25 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 			int platformImage = pri.platform;
 			std::shared_ptr<ImageWrapper> image = logos[PlatformImageMap[platformImage]];
 			if (image->IsLoadedForCanvas()) {
-				canvas.SetColor(teamColors[pri.team]);
+				if (doOverride) {
+					if (pri.team == 0) {
+						canvas.SetColor(BlueColorPicker.getColorValue());
+						LOG("Using color {}", BlueColorPicker.getStringValue());
+					}
+					else {
+						canvas.SetColor(OrangeColorPicker.getColorValue());
+						LOG("Using color {}", OrangeColorPicker.getStringValue());
+					}
+				}
+				else {
+					canvas.SetColor(teamColors[pri.team]);
+				}
 				canvas.SetPosition(Vector2{ (int)X, (int)Y });
 				canvas.DrawTexture(image.get(), 100.0f/48.0f*image_scale); // last bit of scale b/c imgs are 48x48
 			}
 			else {
 				LOG("not loaded for canvas");
 			}
-			Gap += 25.0f;
-			// move the next player down 1
-			canvas.SetPosition(Vector2F{ BlueX, BlueY + Gap });
 		}
 
 		
