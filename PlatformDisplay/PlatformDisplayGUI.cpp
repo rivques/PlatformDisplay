@@ -26,12 +26,15 @@ void PlatformDisplay::RenderSettings() {
 
 	CVarWrapper overrideTintCvar = cvarManager->getCvar("PlatformDisplay_OverrideTints");
 	if (!overrideTintCvar) { return; }
-	bool doOverride = overrideTintCvar.getBoolValue();
+	int doOverride = overrideTintCvar.getIntValue();
 
-	if (ImGui::Checkbox("Override auto tinting of logos (set to white for no tinting", &doOverride)) {
-		overrideTintCvar.setValue(doOverride);
-	}
-	if (doOverride) {
+	static int overrideMode = 0;
+	ImGui::RadioButton("Automatically tint icons", &overrideMode, 0); ImGui::SameLine();
+	ImGui::RadioButton("Don't tint icons", &overrideMode, 1); ImGui::SameLine();
+	ImGui::RadioButton("Override icon tint", &overrideMode, 2);
+	overrideTintCvar.setValue(overrideMode);
+
+	if (overrideMode == 2) {
 		if (ImGui::ColorEdit4("Blue Color", &textColorBlue.R)) {
 			colorpickerblue.setValue(textColorBlue * 255);
 		}

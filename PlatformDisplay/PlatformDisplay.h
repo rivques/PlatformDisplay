@@ -83,6 +83,6 @@ class PlatformDisplay :
 	float scale = 1.0f;
 
 	std::shared_ptr<ImageWrapper> logos[6];
-
+	std::shared_ptr<ImageWrapper> notintlogos[6];
 };
 

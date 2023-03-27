@@ -44,10 +44,13 @@ void PlatformDisplay::onLoad()
 {
 	_globalCvarManager = cvarManager;
 	for (int i = 0; i < 6; i++) {
-		logos[i] = std::make_shared<ImageWrapper>(gameWrapper->GetDataFolder() / "PlatformDisplayImages" / (std::to_string(i) + ".png"), true, false);
+		logos[i] = std::make_shared<ImageWrapper>(gameWrapper->GetDataFolder() / "PlatformDisplayImages" / (std::to_string(i) + ".png"), false, false);
 		logos[i]->LoadForCanvas();
 	}
-
+	for (int i = 0; i < 6; i++) {
+		notintlogos[i] = std::make_shared<ImageWrapper>(gameWrapper->GetDataFolder() / "PlatformDisplayImages" / (std::to_string(i) + "-no-tint.png"), false, false);
+		notintlogos[i]->LoadForCanvas();
+	}
 
 	//Sounds like a lot of HOOPLA!!!
 	cvarManager->registerCvar("PlatformDisplay_OverrideTints", "0", "Override the autotinting of the platform icons");
@@ -217,7 +220,7 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 		if (!BlueColorPicker) { return; }
 		CVarWrapper overrideTintCvar = cvarManager->getCvar("PlatformDisplay_OverrideTints");
 		if (!overrideTintCvar) { return; }
-		bool doOverride = overrideTintCvar.getBoolValue();
+		int doOverride = overrideTintCvar.getIntValue();
 		// the values
 		LinearColor BlueColor = BlueColorPicker.getColorValue();
 		CVarWrapper OrangeColorPicker = cvarManager->getCvar("PlatformDisplay_ColorPickerOrangeTeam");
@@ -284,9 +287,13 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 			// 2x scale
 			//canvas.DrawString(playerString, 2.0, 2.0);
 			int platformImage = pri.platform;
-			std::shared_ptr<ImageWrapper> image = logos[PlatformImageMap[platformImage]];
+			std::shared_ptr<ImageWrapper> image = (doOverride == 1)? notintlogos[PlatformImageMap[platformImage]] : logos[PlatformImageMap[platformImage]];
 			if (image->IsLoadedForCanvas()) {
-				if (doOverride) {
+				canvas.SetPosition(Vector2{ (int)X, (int)Y });
+				if (doOverride == 1) {
+					canvas.SetColor({ 255, 255, 255, 255 });
+				}
+				else if (doOverride == 2) {
 					if (pri.team == 0) {
 						canvas.SetColor(BlueColorPicker.getColorValue());
 						LOG("Using color {}", BlueColorPicker.getStringValue());
@@ -299,8 +306,8 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 				else {
 					canvas.SetColor(teamColors[pri.team]);
 				}
-				canvas.SetPosition(Vector2{ (int)X, (int)Y });
-				canvas.DrawTexture(image.get(), 100.0f/48.0f*image_scale); // last bit of scale b/c imgs are 48x48
+
+					canvas.DrawTexture(image.get(), 100.0f / 48.0f * image_scale); // last bit of scale b/c imgs are 48x48
 			}
 			else {
 				LOG("not loaded for canvas");
