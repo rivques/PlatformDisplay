@@ -24,6 +24,13 @@ void PlatformDisplay::RenderSettings() {
 	if (!colorpickerorange) { return; }
 	LinearColor textColorOrange = colorpickerorange.getColorValue() / 255;
 
+	CVarWrapper enabledCvar = cvarManager->getCvar("PlatformDisplay_Enabled");
+	if (!enabledCvar) { return; }
+	bool enabled = enabledCvar.getBoolValue();
+	if (ImGui::Checkbox("Enable plugin", &enabled)) {
+		enabledCvar.setValue(enabled);
+	}
+
 	CVarWrapper overrideTintCvar = cvarManager->getCvar("PlatformDisplay_OverrideTints");
 	if (!overrideTintCvar) { return; }
 	int doOverride = overrideTintCvar.getIntValue();

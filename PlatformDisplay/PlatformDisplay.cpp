@@ -54,6 +54,7 @@ void PlatformDisplay::onLoad()
 
 	//Sounds like a lot of HOOPLA!!!
 	cvarManager->registerCvar("PlatformDisplay_OverrideTints", "0", "Override the autotinting of the platform icons");
+	cvarManager->registerCvar("PlatformDisplay_Enabled", "1", "Enable the plugin");
 	cvarManager->registerCvar("PlatformDisplay_ColorPickerBlueTeam", "#FFFFFF", "Changes the color of the text for blue team");
 	cvarManager->registerCvar("PlatformDisplay_ColorPickerOrangeTeam", "#FFFFFF", "Changes the color of the text for Orange Team");
 	//Make thing go yes
@@ -212,7 +213,10 @@ std::string PlatformDisplay::to_lower(std::string s) {
 }
 
 void PlatformDisplay::Render(CanvasWrapper canvas) {
-	if (show) {
+	CVarWrapper enabledCvar = cvarManager->getCvar("PlatformDisplay_Enabled");
+	if (!enabledCvar) { return; }
+	bool enabled = enabledCvar.getBoolValue();
+	if (show && enabled) {
 		//get the pos and color for the blue team
 
 		//cvars
