@@ -20,6 +20,7 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 #define IMBALANCE_SHIFT 32
 #define MUTATOR_SIZE 478
 #define SKIP_TICK_SHIFT 67
+#define Y_OFFCENTER_OFFSET 42
 
 class PlatformDisplay :
 	public BakkesMod::Plugin::BakkesModPlugin, public BakkesMod::Plugin::PluginSettingsWindow, public BakkesMod::Plugin::PluginWindow

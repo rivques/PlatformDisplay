@@ -246,7 +246,7 @@ void PlatformDisplay::Render(CanvasWrapper canvas) {
 		uiScale = gameWrapper->GetDisplayScale();
 		// LOG("Got UI scale {}", uiScale);
 		mutators = mmrWrapper.GetCurrentPlaylist() == 34;
-		Vector2F center = Vector2F{ float(canvas_size.X) / 2, float(canvas_size.Y) / 2 };
+		Vector2F center = Vector2F{ float(canvas_size.X) / 2, float(canvas_size.Y) / 2 + Y_OFFCENTER_OFFSET * scale * uiScale };
 		float mutators_center = canvas_size.X - 1005.0f * scale * uiScale;
 		if (mutators_center < center.X && mutators) center.X = mutators_center;
 		int team_difference = num_blues - num_oranges;
